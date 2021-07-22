@@ -15,50 +15,59 @@ def pre_compilador(nome_arq, novo_arq):
 
     for linha in arq:
 
+        nova_linha = linha
+
+        nova_linha, eh_comentario = verifica_comentario(nova_linha, eh_comentario)
         if eh_comentario:
-            if '*/' in linha:
-                nova_linha = comentario_bloco_final(linha)
-                if nova_linha is not None:
-                    novo_arq.write(nova_linha)
-                eh_comentario = False
-            else:
-                continue
-        elif '/*' in linha:
-            nova_linha = comentario_bloco_inicio(linha)
-            if nova_linha is not None:
-                novo_arq.write(nova_linha)
-            eh_comentario = True
-        elif "//" in linha:
-            nova_linha = comentario_linha(linha)
-            novo_arq.write(nova_linha)
-        elif "#" in linha:
-            if "#define" in linha:
-                linha_dividida = linha.split()
+            continue
+
+        if "#" in nova_linha:
+            if "#define" in nova_linha:
+                linha_dividida = nova_linha.split()
                 if len(linha_dividida) == 3:
                     chave, valor = linha_dividida[1], linha_dividida[2]
                     dic_defines[chave] = valor
                     achou_define = True
+                    nova_linha = ""
             elif '#include' in linha:
-                include(linha, novo_arq, lista_include)
-            else:
-                novo_arq.write(linha)
+                include(nova_linha, novo_arq, lista_include)
+                nova_linha = ""
         else:
             if achou_define:
-                print(linha)
-                nova_linha = troca_valor(linha, dic_defines)
-                novo_arq.write(nova_linha)
-            else:
-                novo_arq.write(linha.strip())
+                nova_linha = troca_valor(nova_linha, dic_defines)
+
+        novo_arq.write(nova_linha.strip())
 
     arq.close()
+
+
+def verifica_comentario(nova_linha, eh_comentario):
+
+    if '/*' in nova_linha:
+        linha_sem_comentario = comentario_bloco_inicio(nova_linha)
+        if linha_sem_comentario is not None:
+            nova_linha = linha_sem_comentario
+        eh_comentario = True
+
+    if eh_comentario:
+        if '*/' in nova_linha:
+            nova_linha = comentario_bloco_final(nova_linha)
+            if nova_linha is None:
+                nova_linha = ""
+            eh_comentario = False
+
+    if "//" in nova_linha:
+        nova_linha = comentario_linha(nova_linha)
+        if nova_linha is None:
+            nova_linha = ""
+
+    return nova_linha, eh_comentario
 
 
 def comentario_bloco_inicio(linha):
     indice_comentario = linha.strip().find('/*')
     if indice_comentario != 0:
         return linha[0: indice_comentario + 1].strip()
-    else:
-        return None
 
 
 def comentario_bloco_final(linha):
@@ -79,7 +88,7 @@ def comentario_linha(linha):
 
 def em_string(linha, palavra):
     indice_comeco = linha.find('"')
-    indice_final = linha.find('"', indice_comeco+1)
+    indice_final = linha.find('"', indice_comeco + 1)
     indice_palavra = linha.find(palavra)
 
     if indice_comeco < indice_palavra < indice_final:
@@ -96,14 +105,11 @@ def troca_valor(linha, dic):
             eh_string = em_string(linha, elemento)
             if not eh_string:
                 nova_linha = linha.replace(elemento, dic[elemento])
-                print(nova_linha)
-                print(linha)
 
     return nova_linha.strip()
 
 
 def include(linha, novo_arq, lista):
-
     linha_dividida = linha.split()
     if linha_dividida[1].startswith('"'):
         nome_arq = linha_dividida[1].removeprefix('"').removesuffix('"')
@@ -113,7 +119,24 @@ def include(linha, novo_arq, lista):
     if nome_arq not in lista:
         lista.append(nome_arq)
         arq_include = open(nome_arq, "r")
-       # novo_arq.write(arq_include.read())
+
+        eh_comentario = False
+
+        for linha in arq_include:
+            nova_linha = linha
+
+            nova_linha, eh_comentario = verifica_comentario(nova_linha, eh_comentario)
+            if eh_comentario:
+                continue
+
+            if '#' in nova_linha:
+                if '#include' in nova_linha:
+                    include(linha, novo_arq, lista)
+                else:
+                    novo_arq.write(nova_linha)
+            elif nova_linha != '\n':
+                novo_arq.write(nova_linha)
+
         arq_include.close()
 
 
