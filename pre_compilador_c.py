@@ -120,22 +120,13 @@ def include(linha, novo_arq, lista):
         lista.append(nome_arq)
         arq_include = open(nome_arq, "r")
 
-        eh_comentario = False
-
         for linha in arq_include:
-            nova_linha = linha
 
-            nova_linha, eh_comentario = verifica_comentario(nova_linha, eh_comentario)
-            if eh_comentario:
-                continue
-
-            if '#' in nova_linha:
-                if '#include' in nova_linha:
-                    include(linha, novo_arq, lista)
-                else:
-                    novo_arq.write(nova_linha)
-            elif nova_linha != '\n':
-                novo_arq.write(nova_linha)
+            if '#include' in linha:
+                include(linha, novo_arq, lista)
+                novo_arq.write("\n")
+            elif linha != '\n':
+                novo_arq.write(linha)
 
         arq_include.close()
 
