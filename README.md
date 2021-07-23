@@ -1,4 +1,4 @@
-# pre_compilador_linguagem_C
+# Pré Compilador para Linguagem C
 
 Trabalho desenvolvido para a matéria de Linguagens de Programação, do curso de Ciências da Computação - UFF Rio das Ostra
 
