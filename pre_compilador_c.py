@@ -1,5 +1,6 @@
 """
-        Trabalho de implementação de um pré compilador para linguagem C
+        Trabalho de implementação de um pré compilador para linguagem C.
+
         Para inserção de bibliotecas e outros arquivos, os mesmo devem
         estar na mesma pasta que o arquivo
 """
@@ -51,9 +52,9 @@ def verifica_comentario(nova_linha, eh_comentario):
 
     if eh_comentario:
         if '*/' in nova_linha:
-            nova_linha = comentario_bloco_final(nova_linha)
-            if nova_linha is None:
-                nova_linha = ""
+            linha_sem_comentario = comentario_bloco_final(nova_linha)
+            if linha_sem_comentario is not None:
+                nova_linha = linha_sem_comentario
             eh_comentario = False
 
     if "//" in nova_linha:
@@ -65,9 +66,12 @@ def verifica_comentario(nova_linha, eh_comentario):
 
 
 def comentario_bloco_inicio(linha):
+    print(linha.strip())
     indice_comentario = linha.strip().find('/*')
+    print(indice_comentario)
     if indice_comentario != 0:
-        return linha[0: indice_comentario + 1].strip()
+        print(linha[0: indice_comentario].strip())
+        return linha[0: indice_comentario].strip()
 
 
 def comentario_bloco_final(linha):
@@ -104,7 +108,7 @@ def troca_valor(linha, dic):
         if indice_palavra != -1:
             eh_string = em_string(linha, elemento)
             if not eh_string:
-                nova_linha = linha.replace(elemento, dic[elemento])
+                nova_linha = nova_linha.replace(elemento, dic[elemento])
 
     return nova_linha.strip()
 
